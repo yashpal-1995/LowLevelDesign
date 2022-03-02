@@ -5,8 +5,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Scanner;
 
-import velocity.parkinglot.util.ParkingLotUtil;
+import velocity.parkinglot.util.InputParser;
+import velocity.parkinglot.util.ParkingLot;
 
 public class ParkingLotApplication {
     
@@ -15,86 +18,83 @@ public class ParkingLotApplication {
         
 	   // create automated ticketing system
 	  // without human intervention
-		
-	  String filePath = "C:\\Users\\Yash\\Documents\\file_inputs.txt";
-	  /*
-	   Scanner sc = new Scanner (System.in);
-
-      while (sc.hasNext() ) {
-        String s1 = sc.next();
-        System.out.println(s1);
-        if(s1.equals("exit")) {
-        break;
-        }
-      }
-	   */
-	  BufferedReader br = new BufferedReader(new FileReader(filePath));
-	  
-	  try{
 		  
-	    String line;
-	    
-	    while((line=br.readLine())!= null){
-	    	
-	    	System.out.println(line);
-	    	
-	    	String expression = line;
-	    	
-	    	if(line.startsWith("create_parking_lot")){
+		// 1) It should provide us with an interactive command prompt based shell where
+		//    commands can be typed in
+		if(args.length == 0){   // 
+			
+			Scanner sc = new Scanner (System.in).useDelimiter("\n");
+            
+			String command = sc.next();
+			
+			String total_slots = command.split("\\s+")[1];
+			
+		    ParkingLot parkingLot = new ParkingLot(Integer.parseInt(total_slots));
+    		parkingLot.initialseParkingLot();
 	    		
-	    		String total_slots = line.split("\\s+")[1];
-	    		
-	    		ParkingLotUtil.createParkingLot(Integer.parseInt(total_slots));
-	    		
-	    	}else if(line.startsWith("park")){
-	    		
-	    		String registrationNumber  = line.split("\\s+")[1];
-	    		String vehicleColor = line.split("\\s+")[2];
-	    		
-	    		ParkingLotUtil.parkVehicle(registrationNumber,vehicleColor);
-	    		
-	    	}else if(line.startsWith("leave")){
-	    		
-	    		String vacate_slot_number = line.split("\\s+")[1];
-	    		
-	    		ParkingLotUtil.makeParkingSlotAvailable(Integer.parseInt(vacate_slot_number));
-	    		
-	    	}else if(line.startsWith("status")){
-	    		
-	    		ParkingLotUtil.getVehicleStatus();
-	    		
-	    	}else if(line.startsWith("registration_numbers_for_cars_with_colour")){
-	    		
-	    		String color = line.split("\\s+")[1];
-	    		ParkingLotUtil.searchRegistrationNumberByColor(color);
-	    		
-	    	}else if(line.startsWith("slot_numbers_for_cars_with_colour")){
-	    		
-	    		String color = line.split("\\s+")[1];
-	    		ParkingLotUtil.searchSlotNumbersByColor(color);
-	  	
-	    	}else if(line.startsWith("slot_number_for_registration_number")){
-	    		
-	    		String registrationNumber  = line.split("\\s+")[1];
-	    		ParkingLotUtil.searchSlotNumberByRegistrationNumber(registrationNumber);
-	    		
-	    	}else {
-	    		System.out.println("Command Not Found !!");
-	    	}
-	
-	    	
-	    }
+		      while (sc.hasNext() ) {
+		    	  
+		            command = sc.next();
+		            InputParser.parse(parkingLot,command);
+		        
+			        if(command.startsWith("exit")) {
+			          break;
+			        }
+		      }
+		
 	  
-	  }catch(Exception e){
-		  e.printStackTrace();
-	  }finally{
-		  try {
-			br.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	  }
+	    }else{
+		    
+	    	//2) It should accept a filename as a parameter at the command prompt and read the
+	    	//   commands from that file
+	    	
+	    	
+	    	String fileName = args[0];   // Assuming file is in same directory as the .jar file
+			
+			File jarFile = null;
+			try {
+				jarFile = new File(ParkingLotApplication.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+			} catch (URISyntaxException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+	        String filePath = jarFile.getParent() + File.separator + fileName;
+			
+	        
+		    // String filePath = "C:\\Users\\Yash\\Documents\\file_inputs.txt";
+
+		    BufferedReader br = new BufferedReader(new FileReader(filePath));
+		  
+		  
+    		
+			  try{
+			    
+			    String line  = br.readLine();
+			    
+			    String total_slots = line.split("\\s+")[1];
+			    ParkingLot parkingLot = new ParkingLot(Integer.parseInt(total_slots));
+	    		parkingLot.initialseParkingLot();
+	    		
+			    while((line=br.readLine())!= null){
+			    	
+			    	//System.out.println(line);
+			    	
+			    	InputParser.parse(parkingLot,line);
+			    	    	
+			    }
+			  
+			  }catch(Exception e){
+				  e.printStackTrace();
+			  }finally{
+				  try {
+					br.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			  }
+		
+	    }
 	  
 	}
 
